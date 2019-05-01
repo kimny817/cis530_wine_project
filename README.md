@@ -13,3 +13,6 @@ _length.py_ computes the accuracy based by training a linear model using the len
 Wordvec folder contains source code for 2 wordvec models:
 1) _concat.py_: concatenates the word vector of words in each wine review to train model.
 2) _average.py_: averages the word vector of words in each wine review to train model.
+
+## Feature analysis
+Feature Analysis folder contains the data and source code for feature analysis
