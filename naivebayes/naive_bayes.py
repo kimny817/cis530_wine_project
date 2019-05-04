@@ -43,17 +43,47 @@ def classify(rating):
 	return min(5, int((rating - 80) / 4) + 1)
 
 
-def read_data(file_path, is_train):
+# In[4]:
+
+def find_common_words(file_paths):
+	dicts = [{}, {}, {}, {}, {}]
+	total_count = [0, 0, 0, 0, 0]
+
+	for file in file_paths:
+		with open(file, 'r') as f:
+			csv_reader = csv.reader(f, delimiter=',')
+			# next(csv_reader)  # This skips the first row of the CSV file.
+
+			for row in csv_reader:
+				description = row[0]
+				words = description.split()
+				rating = int(row[1])
+				dict = dicts[rating-1]
+
+				for w in words:
+					total_count[rating-1] += 1
+					if w in dict:
+						dict[w] += 1
+					else:
+						dict[w] = 1
+
+	for i, dict in enumerate(dicts):
+		print('label', i+1, 'total count', total_count[i])
+		print(sorted(dict.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)[:10])
+
+
+def read_data(file_paths):
 	'''
-		:param file_path: path to a file
-				For example,
-				-.data/train.csv
-				-.data/test.csv
-		:return: a tuple consisting of
-				1. a feature vector that is a vectorized list of descriptions
-				2. a list of labels (1,2,3,4,5)
-	'''
+    :param file_path: list of path to a file
+            For example,
+            -./wine_train.csv
+            -./wine_test.csv
+    :return: a tuple consisting of
+            1. a feature vector that is a vectorized list of descriptions
+            2. a list of labels (1,2,3,4,5)
+    '''
 	# stopwords_set = set(stopwords.words('english'))
+	# lemmatizer = WordNetLemmatizer().lemmatize
 
 	description_list = []
 	labels = []
@@ -65,7 +95,7 @@ def read_data(file_path, is_train):
 
 			for row in csv_reader:
 				description = row[0]
-				rating = int(row[1])
+				rating = classify(int(row[1]))
 				# tokens = re.sub(r'[^a-zA-Z0-9\s]', ' ', description).split()
 				# tokens = [t.lower() for t in tokens]
 				# tokens = [lemmatizer(w) for w in tokens if w not in stopwords_set]
@@ -79,7 +109,7 @@ def read_data(file_path, is_train):
 
 
 def vectorize(list, is_ngram, n):
-	vectorizer = CountVectorizer(ngram_range=(1, n)) if is_ngram else TfidfVectorizer(ngram_range=(1, n))
+	vectorizer = CountVectorizer(tokenizer=LemmaTokenizer(), ngram_range=(1, n)) if is_ngram else TfidfVectorizer(ngram_range=(1, n))
 	return np.array(vectorizer.fit_transform(list).todense())
 
 
@@ -176,18 +206,21 @@ def run(X, y):
 
 
 def main(args):
+	# find_common_words([args.train, 'val.csv', args.test])
 	files = [args.train, args.test]
 	description_list, y = read_data(files)
 
-	tf_bigram_X = vectorize(description_list, True, 1) # running tf_bigram_X with the param = 1 will be the baseline
+	# tf_bigram_X = vectorize(description_list, True, 3)
 
 	# tf_trigram_X = vectorize(description_list, True, 3)
 
-	# tfidf_bigram_X = vectorize(description_list, False, 3)
-
+	tfidf_bigram_X = vectorize(description_list, False, 3)
+	#
+	#
 	# tfidf_unigram_X = vectorize(description_list, False, 1)
 
-	run(tf_bigram_X, y)
+	# run(tf_bigram_X, y)
+	run(tfidf_bigram_X, y)
 
 if __name__ == '__main__':
 	args = parser.parse_args()
