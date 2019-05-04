@@ -136,5 +136,5 @@ def run(X, y):
 
 if __name__ == '__main__':
 	reviews, provinces = read_data('wine_top_province.csv')
-	tfidf_bigram_X = vectorize(reviews, True, 3)
-	run(tfidf_bigram_X, provinces)
+	ngram_X = vectorize(reviews, True, 3)
+	run(ngram_X, provinces)

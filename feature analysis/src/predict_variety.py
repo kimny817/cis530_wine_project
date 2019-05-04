@@ -6,7 +6,6 @@ Description:
 import csv
 from nltk import *
 import numpy as np
-from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 from nltk.stem import WordNetLemmatizer
@@ -26,29 +25,30 @@ class LemmaTokenizer(object):
 		return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
 
 def read_data(file):
-	stopwords_set = set(stopwords.words('english'))
 	description_list = []
 	labels = []
 	top_varieties = ['Chardonnay', 'Pinot Noir', 'Cabernet Sauvignon', 'Red Blend', 'Bordeaux-style Red Blend']
 
-	with open(file, 'r') as f:
+	with open(file, 'r', errors='ignore') as f:
 		csv_reader = csv.reader(f, delimiter=',')
-		next(csv_reader)  # This skips the first row of the CSV file.
-
+		count = 0
 		for row in csv_reader:
+			if count > 10000:
+				break
 			description = row[0]
 			variety = row[1]
 
 			if variety in top_varieties:
 				tokens = re.sub(r'[^a-zA-Z0-9\s]', ' ', description).split()
 				tokens = [t.lower() for t in tokens]
-				tokens = [lemmatizer(w) for w in tokens if w not in stopwords_set]
 				labels.append(variety)
 				description_list.append(description)
+				count += 1
 
+	print("Finished reading")
 	return description_list, np.array(labels)
 
-def split_data(X, y, train=10000, test=12500):
+def split_data(X, y, train=9000, test=10000):
 	train_X = X[0: train, :]
 	train_y = y[0: train]
 	test_X = X[train: test, :]
@@ -57,8 +57,8 @@ def split_data(X, y, train=10000, test=12500):
 	print("Done Spliting")
 	return train_X, train_y, test_X, test_y
 
-def vectorize(list, is_ngram, n):
-	vectorizer = CountVectorizer(ngram_range=(1, n)) if is_ngram else TfidfVectorizer(ngram_range=(1, n))
+def vectorize(list, n):
+	vectorizer = CountVectorizer(ngram_range=(1, n))
 	return np.array(vectorizer.fit_transform(list).todense())
 
 def evaluate(y_test, y_pred):
@@ -129,12 +129,12 @@ def run(X, y):
 	y_pred = nb.predict(test_X)
 	evaluate(test_y, y_pred)
 
-	class_names = ['California', 'Washington', 'Tuscany', 'Bordeaux', 'Northern Spain']
+	class_names = ['Chardonnay', 'Pinot Noir', 'Cabernet Sauvignon', 'Red Blend', 'Bordeaux-style Red Blend']
 	plot_confusion_matrix(test_y, y_pred, classes=class_names, normalize=True, title='Confusion matrix')
 
 	plt.show()
 
 if __name__ == '__main__':
 	reviews, variety = read_data('wine_top_variety.csv')
-	tfidf_bigram_X = vectorize(reviews, False, 3)
-	run(tfidf_bigram_X, variety)
+	ngram_X = vectorize(reviews, 3)
+	run(ngram_X, variety)
