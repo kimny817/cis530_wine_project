@@ -9,6 +9,11 @@ Stop words and punctuations are removed, and words are lemmatized.
 Baseline folder contains source code of baseline model. 
 _length.py_ computes the accuracy based by training a linear model using the length of wine reviews
 
+## Naive Bayes
+Naive Bayes foler contains source code for Naive Bayes model.
+1) _naivebayes.py-: you can specify in the code so that you can run NB with word-count or tf-idf and its n-gram. 
+The command is the following. _python naivebayes.py --train [TRAIN FILE] --test [TEST FILE]_
+
 ## Wordvec
 Wordvec folder contains source code for 2 wordvec models:
 1) _concat.py_: concatenates the word vector of words in each wine review to train model.
